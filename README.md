@@ -342,33 +342,49 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph "Computer"
-        A[Ubuntu 24.04<br/>NVIDIA GPU]
-        B[Isaac Sim 5.1<br/>Python Environment]
-        C[Python Script<br/>wearhaus_room_jetbot_avoidance.py]
+    subgraph Computer
+        A["Ubuntu 24.04
+        NVIDIA GPU"]
+        B["Isaac Sim 5.1
+        Python Environment"]
+        C["Python Script
+        wearhaus_room_jetbot_avoidance.py"]
     end
     
-    subgraph "USB Connection"
-        D[/dev/ttyUSB0<br/>Serial Port<br/>57600 baud]
+    subgraph USB_Connection["USB Connection"]
+        D["/dev/ttyUSB0
+        Serial Port
+        57600 baud"]
     end
     
-    subgraph "Dynamixel Network"
-        E[U2D2 USB Adapter<br/>TTL to Serial]
-        F[Daisy Chain<br/>3-pin TTL Bus]
+    subgraph Dynamixel_Network["Dynamixel Network"]
+        E["U2D2 USB Adapter
+        TTL to Serial"]
+        F["Daisy Chain
+        3-pin TTL Bus"]
     end
     
-    subgraph "Robot 1 Hardware"
-        G[Motor ID 1<br/>Left Wheel<br/>XL430-W250-T]
-        H[Motor ID 2<br/>Right Wheel<br/>XL430-W250-T]
+    subgraph Robot1["Robot 1 Hardware"]
+        G["Motor ID 1
+        Left Wheel
+        XL430-W250-T"]
+        H["Motor ID 2
+        Right Wheel
+        XL430-W250-T"]
     end
     
-    subgraph "Robot 2 Hardware"
-        I[Motor ID 3<br/>Left Wheel<br/>XL430-W250-T]
-        J[Motor ID 4<br/>Right Wheel<br/>XL430-W250-T]
+    subgraph Robot2["Robot 2 Hardware"]
+        I["Motor ID 3
+        Left Wheel
+        XL430-W250-T"]
+        J["Motor ID 4
+        Right Wheel
+        XL430-W250-T"]
     end
     
-    subgraph "Power Supply"
-        K[12V SMPS<br/>2A minimum]
+    subgraph Power["Power Supply"]
+        K["12V SMPS
+        2A minimum"]
     end
     
     A --> B
