@@ -158,9 +158,13 @@ isaac-sim2real/
 ├── src/                          # Main source code
 │   ├── isaac_dxl_bridge.py      # Full Isaac Sim ↔ Hardware bridge
 │   └── simple_gui_test.py       # Hardware-only GUI test
+├── examples/                     # Isaac Sim example scripts
+│   ├── sample_room_robot.py     # Sample room with NVIDIA robot
+│   └── README.md                # Examples documentation
 ├── scripts/                      # Utility scripts
 │   ├── verify_setup.py          # Setup verification
-│   └── run_isaac_dxl.sh         # Launcher script
+│   ├── run_isaac_dxl.sh         # Launcher script
+│   └── cleanup.sh               # Workspace cleanup script
 ├── tests/                        # Unit & integration tests
 │   ├── test_isaac_only.py       # Isaac Sim integration test
 │   └── test_bridge_components.py # Component unit tests
@@ -183,6 +187,9 @@ isaac-sim2real/
 │   ├── HARDWARE_SETUP.md        # Hardware setup guide
 │   └── TROUBLESHOOTING.md       # Common issues & solutions
 ├── requirements.txt             # Python dependencies
+├── HOW_TO_RUN.md                # Python interpreter guide
+├── SERVO_CONTROL_GUIDE.md       # Complete servo control documentation
+├── CLEANUP_SUMMARY.md           # Workspace maintenance
 ├── LICENSE                      # MIT License
 ├── CONTRIBUTING.md              # Contribution guidelines
 └── README.md                    # This file
@@ -260,16 +267,20 @@ See [CLEANUP_SUMMARY.md](CLEANUP_SUMMARY.md) for detailed cleanup documentation.
 Test each component independently before running the full bridge:
 
 ```bash
-# 1. Test hardware only (no Isaac Sim) - Use virtual environment Python
+# 1. Sample room with NVIDIA robot (no hardware needed)
+cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+./python.sh ~/Desktop/isaac-sim2real/examples/sample_room_robot.py
+
+# 2. Test hardware only (no Isaac Sim) - Use virtual environment Python
 cd ~/Desktop/isaac-sim2real
 source .venv/bin/activate
 python src/simple_gui_test.py
 
-# 2. Test Isaac Sim only (no hardware) - Use Isaac Sim Python
+# 3. Test Isaac Sim only (no hardware) - Use Isaac Sim Python
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaac-sim2real/tests/test_isaac_only.py
 
-# 3. Run full integration tests - Use virtual environment Python
+# 4. Run full integration tests - Use virtual environment Python
 cd ~/Desktop/isaac-sim2real
 source .venv/bin/activate
 pytest tests/ -v
@@ -279,6 +290,7 @@ pytest tests/ -v
 - Scripts that import `isaacsim` **must** use Isaac Sim's `python.sh`
 - Scripts that only test hardware can use the virtual environment
 - See [HOW_TO_RUN.md](HOW_TO_RUN.md) for details
+- See [SERVO_CONTROL_GUIDE.md](SERVO_CONTROL_GUIDE.md) for servo integration
 
 ## 📚 Documentation
 

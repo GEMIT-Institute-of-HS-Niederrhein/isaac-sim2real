@@ -35,9 +35,11 @@ echo "  2) Verify setup"
 echo "  3) Test Isaac Sim only (no hardware)"
 echo "  4) Test hardware only (GUI)"
 echo "  5) Run full bridge (Isaac Sim + Hardware)"
+echo "  6) Minimal Jetbot Example (working prototype)"
+echo "  7) Jetbot + Servo Integration (IDs 1 & 2)"
 echo "  q) Quit"
 echo ""
-read -p "Enter choice [1-5]: " choice
+read -p "Enter choice [1-7]: " choice
 
 case $choice in
     1)
@@ -81,6 +83,30 @@ case $choice in
         echo ""
         cd "$ISAAC_SIM_PATH"
         ./python.sh "$REPO_PATH/src/isaac_dxl_bridge.py"
+        ;;
+    
+    6)
+        echo ""
+        echo "Starting Minimal Jetbot Example..."
+        echo "(Simple working prototype - no hardware needed)"
+        echo ""
+        cd "$ISAAC_SIM_PATH"
+        ./python.sh "$REPO_PATH/examples/minimal_jetbot.py"
+        ;;
+    
+    7)
+        echo ""
+        echo "Starting Jetbot + Servo Integration..."
+        echo "(Dynamixel IDs 1 & 2)"
+        echo ""
+        echo "Make sure motors are connected:"
+        echo "  - Motor ID 1: Left wheel"
+        echo "  - Motor ID 2: Right wheel"
+        echo "  - Port: /dev/ttyUSB0"
+        echo ""
+        read -p "Press Enter to continue or Ctrl+C to cancel..."
+        cd "$ISAAC_SIM_PATH"
+        ./python.sh "$REPO_PATH/examples/jetbot_servo_bridge.py"
         ;;
 
     q|Q)
