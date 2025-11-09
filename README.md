@@ -84,10 +84,27 @@ cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 
 ### 5. Run the Bridge! 🎯
 
+**⚠️ CRITICAL: Must use Isaac Sim's Python interpreter!**
+
 ```bash
+# ✅ CORRECT - Use Isaac Sim's python.sh
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaac-sim2real/src/isaac_dxl_bridge.py
+
+# Or use the helper script (recommended):
+cd ~/Desktop/isaac-sim2real/scripts
+./run_isaac_dxl.sh  # Choose option 5
 ```
+
+**❌ DO NOT run with regular Python:**
+```bash
+# This will fail with "ModuleNotFoundError: No module named 'isaacsim'"
+python src/isaac_dxl_bridge.py
+source .venv/bin/activate && python src/isaac_dxl_bridge.py
+```
+
+> **Why?** The `isaacsim` module is only available in Isaac Sim's Python environment.
+> See [HOW_TO_RUN.md](HOW_TO_RUN.md) for detailed explanation.
 
 **Keyboard Controls:**
 
@@ -186,23 +203,82 @@ Key configuration options:
 - `VELOCITY_LIMIT`: Maximum motor velocity
 - `UPDATE_RATE_HZ`: Control loop frequency
 
+## 🧹 Maintenance & Cleanup
+
+### Quick Cleanup
+
+Use the automated cleanup script to remove build artifacts and cache files:
+
+```bash
+cd ~/Desktop/isaac-sim2real
+./scripts/cleanup.sh
+```
+
+This interactive script will:
+- Clean ROS workspace (build, install, log directories)
+- Remove Python cache files (__pycache__, .pyc, .pytest_cache)
+- Optionally recreate Python virtual environment
+- Optionally rebuild ROS workspace
+
+### Manual Cleanup
+
+**Clean ROS Workspace:**
+```bash
+cd ~/Desktop/isaac-sim2real/isaac_ros_ws
+rm -rf build install log
+```
+
+**Rebuild ROS Workspace:**
+```bash
+cd ~/Desktop/isaac-sim2real/isaac_ros_ws
+source /opt/ros/humble/setup.bash  # or your ROS distro
+colcon build --symlink-install
+source install/setup.bash
+```
+
+**Recreate Python Environment:**
+```bash
+cd ~/Desktop/isaac-sim2real
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Clean Python Cache:**
+```bash
+find . -type d -name "__pycache__" -not -path "./.venv/*" -exec rm -rf {} + 2>/dev/null
+find . -type f -name "*.pyc" -not -path "./.venv/*" -delete 2>/dev/null
+find . -type d -name ".pytest_cache" -not -path "./.venv/*" -exec rm -rf {} + 2>/dev/null
+```
+
+See [CLEANUP_SUMMARY.md](CLEANUP_SUMMARY.md) for detailed cleanup documentation.
+
 ## 🧪 Testing Components
 
 Test each component independently before running the full bridge:
 
 ```bash
-# 1. Test hardware only (no Isaac Sim)
+# 1. Test hardware only (no Isaac Sim) - Use virtual environment Python
+cd ~/Desktop/isaac-sim2real
 source .venv/bin/activate
 python src/simple_gui_test.py
 
-# 2. Test Isaac Sim only (no hardware)
+# 2. Test Isaac Sim only (no hardware) - Use Isaac Sim Python
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaac-sim2real/tests/test_isaac_only.py
 
-# 3. Run full integration tests
+# 3. Run full integration tests - Use virtual environment Python
+cd ~/Desktop/isaac-sim2real
 source .venv/bin/activate
 pytest tests/ -v
 ```
+
+**Important:** 
+- Scripts that import `isaacsim` **must** use Isaac Sim's `python.sh`
+- Scripts that only test hardware can use the virtual environment
+- See [HOW_TO_RUN.md](HOW_TO_RUN.md) for details
 
 ## 📚 Documentation
 

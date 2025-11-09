@@ -3,6 +3,18 @@
 Isaac Sim 5.1 <-> Dynamixel XL430 Bridge Demo
 4-Wheel Drive Robot Control with Variable Speed and Steering
 Click-to-Navigate with Autonomous Path Following
+
+IMPORTANT: This script MUST be run with Isaac Sim's Python interpreter!
+
+Usage:
+    cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+    ./python.sh ~/Desktop/isaac-sim2real/src/isaac_dxl_bridge.py
+
+Or use the helper script:
+    ~/Desktop/isaac-sim2real/scripts/run_isaac_dxl.sh
+
+DO NOT run with: python isaac_dxl_bridge.py
+(This will fail with "ModuleNotFoundError: No module named 'isaacsim'")
 """
 
 import os

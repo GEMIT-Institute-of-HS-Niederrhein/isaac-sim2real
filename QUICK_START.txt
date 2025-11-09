@@ -1,0 +1,83 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    ISAAC SIM 2 REAL - QUICK START                        ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+⚠️  IMPORTANT: Use the correct Python interpreter!
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ SCRIPTS WITH ISAAC SIM → Use Isaac Sim Python                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+✅ CORRECT:
+   cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+   ./python.sh ~/Desktop/isaac-sim2real/src/isaac_dxl_bridge.py
+
+   Or use the helper:
+   cd ~/Desktop/isaac-sim2real/scripts
+   ./run_isaac_dxl.sh
+
+❌ WRONG:
+   python src/isaac_dxl_bridge.py
+   → Will fail: ModuleNotFoundError: No module named 'isaacsim'
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ HARDWARE-ONLY SCRIPTS → Use Virtual Environment                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+✅ CORRECT:
+   cd ~/Desktop/isaac-sim2real
+   source .venv/bin/activate
+   python src/simple_gui_test.py
+   python tools/hardware/dxl_idscan.py
+
+═══════════════════════════════════════════════════════════════════════════
+
+📋 QUICK COMMANDS:
+
+Full Bridge (Sim + Hardware):
+  cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+  ./python.sh ~/Desktop/isaac-sim2real/src/isaac_dxl_bridge.py
+
+Hardware Only Test:
+  cd ~/Desktop/isaac-sim2real
+  source .venv/bin/activate
+  python src/simple_gui_test.py
+
+Hardware Diagnostics:
+  cd ~/Desktop/isaac-sim2real
+  source .venv/bin/activate
+  python tools/hardware/dxl_idscan.py
+
+Interactive Menu:
+  cd ~/Desktop/isaac-sim2real/scripts
+  ./run_isaac_dxl.sh
+
+═══════════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTATION:
+  - HOW_TO_RUN.md        - Detailed Python interpreter guide
+  - README.md            - Full project documentation
+  - ISSUE_RESOLVED.md    - Solution to ModuleNotFoundError
+  - CLEANUP_SUMMARY.md   - Workspace maintenance guide
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎮 CONTROLS (once running):
+
+  N           : Toggle Navigation Mode
+  
+  Keyboard Mode:
+    ↑/↓       : Forward/Backward
+    ←/→       : Turn Left/Right
+    1-9       : Speed Control (10%-90%)
+    SPACE     : Emergency Stop
+  
+  Navigation Mode:
+    W         : Navigate forward 2m
+    A         : Navigate left 2m
+    S         : Navigate backward 2m
+    D         : Navigate right 2m
+  
+  ESC         : Quit
+
+═══════════════════════════════════════════════════════════════════════════
