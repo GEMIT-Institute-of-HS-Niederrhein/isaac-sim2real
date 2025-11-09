@@ -1,125 +1,189 @@
 # Isaac Sim Examples
 
-This directory contains example scripts demonstrating Isaac Sim capabilities and serving as templates for your projects.
+Example scripts demonstrating Isaac Sim capabilities with hardware integration and intelligent obstacle avoidance.
 
-## Available Examples
+## ⭐ Main Demos
 
-### 🏢 wearhaus_room_jetbot.py (NEW! - Isaac Sim 5.1)
-**Purpose:** Realistic warehouse/office environment with Jetbot + optional Dynamixel integration
-
-**What it does:**
-- Loads realistic environments from Isaac Sim content browser
-  - Full Warehouse (with shelves and props)
-  - Simple Warehouse  
-  - Simple Room
-  - Or creates custom Wearhaus-style room as fallback
-- Adds Jetbot robot with autonomous movement pattern
-- Optional bidirectional sync with Dynamixel servos (Motor IDs 1 & 2)
-- Works in simulation-only mode if hardware not connected
+### 🚦 wearhaus_room_jetbot_avoidance.py (RECOMMENDED)
+**Purpose:** Dual-robot intelligent obstacle avoidance with hardware integration
 
 **Features:**
-✅ Uses Isaac Sim's built-in environment assets  
-✅ Realistic room with walls and obstacles  
-✅ Optional hardware integration  
-✅ Autonomous navigation pattern  
-✅ Real-time position and velocity feedback  
+- 🤖 **2 Jetbots** with differential drive (4 Dynamixel motors total)
+- 🚦 **Intelligent Obstacle Avoidance**:
+  - PhysX raycast-based sensing (60° FOV, 8m range)
+  - Gradual slowdown as obstacles approach
+  - Smart turn direction (analyzes left/right clearance)
+  - Smooth acceleration/deceleration
+  - 5-state machine: FORWARD, STOP, REVERSE, TURN, EMERGENCY_STOP
+- 🔄 **Mutual Avoidance**: Robots detect and avoid each other
+- 🏢 **Realistic Environment**: Full warehouse with shelves and props
+- 🛡️ **Hardware Safety**: Velocity limiting, emergency stop, error handling
+
+**Hardware Configuration:**
+- **Robot 1**: Motor IDs 1 (Left) & 2 (Right)
+- **Robot 2**: Motor IDs 3 (Left) & 4 (Right)
+- Port: /dev/ttyUSB0 @ 57600 baud
+- Works in simulation-only mode if hardware not connected
+
+**How to run:**
+```bash
+# Method 1: Direct execution
+cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+./python.sh ~/Desktop/isaac-sim2real/examples/wearhaus_room_jetbot_avoidance.py
+
+# Method 2: Use menu (recommended)
+cd ~/Desktop/isaac-sim2real/scripts
+./run_isaac_dxl.sh  # Choose option 9
+```
+
+**Controls:**
+- `E` : Toggle emergency stop (both robots)
+- `Ctrl+C` : Quit application
+- Robots move forward autonomously and avoid obstacles
+
+**Console Output:**
+```
+[Step  370]
+  Robot 1: Pos: [+0.73, -0.41] | Vel: L=+5.000 R=+5.000 | Avoid: FORWARD | Dist: 4.70m | Motors: L= 202 R= 207
+  Robot 2: Pos: [+1.33, -0.72] | Vel: L=+5.000 R=+5.000 | Avoid: FORWARD | Dist: 4.10m | Motors: L= 198 R= 195
+```
+
+**Tunable Parameters** (in script):
+```python
+AVOIDANCE_CONFIG = {
+    "obstacle_threshold": 0.8,      # Stop distance (meters)
+    "clear_margin": 0.5,            # Hysteresis margin (meters)
+    "reverse_speed": 0.15,          # Reverse velocity (m/s)
+    "reverse_duration": 1.8,        # Reverse time (seconds)
+    "turn_speed": math.pi / 4,      # Turn angular velocity (rad/s)
+    "turn_angle": math.pi / 2,      # Turn amount (radians, ~90°)
+    "lidar_fov": 60.0,              # Forward arc coverage (degrees)
+    "forward_speed": 0.5,           # Normal forward velocity (m/s)
+    # ... 13 parameters total
+}
+```
+
+---
+
+### 🏢 wearhaus_room_jetbot.py
+**Purpose:** Single Jetbot with manual control in warehouse environment
+
+**Features:**
+- Single Jetbot robot with differential drive
+- Autonomous movement pattern
+- Optional Dynamixel integration (Motor IDs 1 & 2)
+- Realistic warehouse environment
+- Works in simulation-only mode
 
 **How to run:**
 ```bash
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaac-sim2real/examples/wearhaus_room_jetbot.py
-```
 
-**Or use the menu:**
-```bash
+# Or use menu:
 cd ~/Desktop/isaac-sim2real/scripts
 ./run_isaac_dxl.sh  # Choose option 8
 ```
 
-**Hardware (Optional):**
-- Motor ID 1: Left wheel
-- Motor ID 2: Right wheel  
-- Port: /dev/ttyUSB0
-- Will run in simulation-only mode if not connected
-
-**What you'll see:**
-- A realistic warehouse or office environment
-- Jetbot robot navigating autonomously
-- Real-time feedback in console
-- If hardware connected: Physical motors mirror simulation
-
 ---
 
 ### 📦 sample_room_robot.py
-**Purpose:** Create a warehouse environment with NVIDIA robot examples
+**Purpose:** Basic example with NVIDIA robot in warehouse
 
-**What it does:**
-- Loads NVIDIA warehouse environment or creates a simple room
-- Adds a wheeled robot (Jetbot, Carter, or Nova Carter)
+**Features:**
+- Loads NVIDIA warehouse environment or creates simple room
+- Supports multiple robot types (Jetbot, Carter, Nova Carter)
 - Demonstrates basic robot movement
-- Serves as a base for Dynamixel servo integration
+- Template for hardware integration
 
 **How to run:**
 ```bash
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaac-sim2real/examples/sample_room_robot.py
-```
 
-**Or use the menu:**
-```bash
+# Or use menu:
 cd ~/Desktop/isaac-sim2real/scripts
 ./run_isaac_dxl.sh  # Choose option 6
 ```
 
-**Configuration:**
-Edit the script to change:
-- `ROBOT_TYPE`: Choose "jetbot", "carter", or "nova_carter"
-- Room size and obstacles
-- Camera viewpoint
-- Movement patterns
+---
 
-**What you'll see:**
-- A 3D environment (warehouse or custom room)
-- A wheeled robot performing autonomous movements
-- Console output showing robot position and velocity
+### 🤖 minimal_jetbot.py
+**Purpose:** Minimal working example with Jetbot
 
-**Future Integration:**
-This script serves as a template for:
-1. Connecting Isaac Sim robot joints to Dynamixel servos
-2. Reading servo feedback and updating simulation
-3. Testing control algorithms before deploying to hardware
-4. Sim-to-real transfer workflows
+**Features:**
+- Simplest possible Jetbot setup
+- No hardware dependencies
+- Great starting point for learning
 
-## Creating Your Own Examples
+**How to run:**
+```bash
+cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+./python.sh ~/Desktop/isaac-sim2real/examples/minimal_jetbot.py
+```
 
-### Template Structure
+---
+
+### 🔌 jetbot_servo_bridge.py
+**Purpose:** Hardware integration example
+
+**Features:**
+- Jetbot with Dynamixel servo integration
+- Bidirectional sync (Sim ↔ Hardware)
+- Template for custom hardware bridges
+
+**How to run:**
+```bash
+cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+./python.sh ~/Desktop/isaac-sim2real/examples/jetbot_servo_bridge.py
+```
+
+## 🎯 Which Example Should I Use?
+
+| Use Case | Example | Description |
+|----------|---------|-------------|
+| **Demo showcase** | `wearhaus_room_jetbot_avoidance.py` | Best for demonstrations, intelligent behaviors |
+| **Learning Isaac Sim** | `minimal_jetbot.py` → `sample_room_robot.py` | Start simple, build complexity |
+| **Hardware integration** | `jetbot_servo_bridge.py` | Connect simulation to real motors |
+| **Testing navigation** | `wearhaus_room_jetbot.py` | Test autonomous movement patterns |
+| **Custom development** | `sample_room_robot.py` | Template for custom projects |
+
+## 📁 Project Structure
+
+```
+examples/
+├── wearhaus_room_jetbot_avoidance.py  # ⭐ Main demo (dual-robot obstacle avoidance)
+├── wearhaus_room_jetbot.py            # Single jetbot with manual control
+├── sample_room_robot.py               # Basic warehouse example
+├── minimal_jetbot.py                  # Minimal working example
+├── jetbot_servo_bridge.py             # Hardware integration template
+└── README.md                          # This file
+```
+
+## 🔧 Creating Your Own Examples
+
+### Basic Template
 
 ```python
 #!/usr/bin/env python3
-"""
-Your Example Description
-"""
+"""Your Example Description"""
 
 from isaacsim import SimulationApp
 
 # Configuration
-CONFIG = {
-    "headless": False,
-    "width": 1920,
-    "height": 1080,
-}
-
+CONFIG = {"headless": False, "width": 1920, "height": 1080}
 simulation_app = SimulationApp(CONFIG)
 
 # Import Isaac Sim modules AFTER SimulationApp
 from isaacsim.core.api import World
-# ... other imports
+from isaacsim.core.utils.types import ArticulationAction
+import numpy as np
 
-# Create your world
+# Create world
 my_world = World(stage_units_in_meters=1.0)
 my_world.scene.add_default_ground_plane()
 
-# Add objects, robots, etc.
+# Add your objects/robots here
 # ...
 
 # Initialize
@@ -131,63 +195,44 @@ while simulation_app.is_running():
     # Your logic here
 
 # Cleanup
-my_world.stop()
 simulation_app.close()
 ```
 
-### Tips for Isaac Sim Scripts
+### Key Principles
 
-1. **Always import `SimulationApp` first**
+1. **Import order matters:**
    ```python
    from isaacsim import SimulationApp
-   simulation_app = SimulationApp({"headless": False})
-   # Now import other Isaac Sim modules
+   app = SimulationApp({})  # Create first
+   # Now import other Isaac modules
+   from isaacsim.core.api import World
    ```
 
-2. **Use Isaac Sim's Python interpreter**
+2. **Use Isaac Sim's Python:**
    ```bash
    # ✅ Correct
+   cd ~/Desktop/isaacsim/_build/linux-x86_64/release
    ./python.sh your_script.py
    
    # ❌ Wrong
    python your_script.py
    ```
 
-3. **Reset the world before simulation**
+3. **Reset before simulation:**
    ```python
-   my_world.reset()  # Call this before your main loop
+   my_world.reset()  # Always call before main loop
    ```
 
-4. **Handle cleanup properly**
+4. **Handle cleanup:**
    ```python
    try:
        while simulation_app.is_running():
            my_world.step(render=True)
-   except KeyboardInterrupt:
-       print("Interrupted")
    finally:
-       my_world.stop()
        simulation_app.close()
    ```
 
-## Available NVIDIA Robot Assets
-
-Check what's available in your Isaac Sim installation:
-
-```bash
-# List all robot assets
-find ~/Desktop/isaacsim -name "*.usd" -path "*Robots*" 2>/dev/null
-
-# Common robots in Isaac Sim:
-# - Jetbot (2-wheel differential drive)
-# - Carter (4-wheel differential drive) 
-# - Nova Carter (advanced autonomous platform)
-# - Franka Panda (robotic arm)
-# - UR10 (robotic arm)
-# - And many more!
-```
-
-## Learning Resources
+## 📚 Learning Resources
 
 ### Official NVIDIA Examples
 Located in: `~/Desktop/isaacsim/source/standalone_examples/`
@@ -202,63 +247,60 @@ cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh ~/Desktop/isaacsim/source/standalone_examples/tutorials/getting_started_robot.py
 ```
 
-### Useful Example Categories
-
-1. **Tutorials** - Basic concepts and getting started
-   - `tutorials/getting_started_robot.py`
-   - `tutorials/hello_world.py`
-
-2. **Wheeled Robots** - Differential drive and holonomic robots
-   - `api/isaacsim.robot.wheeled_robots.examples/jetbot_differential_move.py`
-   - `api/isaacsim.robot.wheeled_robots.examples/kaya_holonomic_move.py`
-
-3. **Robot Manipulators** - Robotic arms
-   - `api/isaacsim.robot.manipulators/`
-
-4. **ROS2 Integration** - ROS2 bridge examples
-   - `api/isaacsim.ros2.bridge/`
-
-## Documentation
-
-- **Servo Control Guide:** `../SERVO_CONTROL_GUIDE.md` - Complete guide on connecting Dynamixel servos
-- **How to Run:** `../HOW_TO_RUN.md` - Python interpreter and execution guide
-- **Main README:** `../README.md` - Project documentation
+### Documentation
+- **Main README:** `../README.md` - Complete project guide
+- **How to Run:** `../HOW_TO_RUN.md` - Python interpreter guide
+- **Servo Control:** `../SERVO_CONTROL_GUIDE.md` - Hardware integration
+- **Troubleshooting:** `../docs/TROUBLESHOOTING.md` - Common issues
 - **Official Docs:** https://docs.omniverse.nvidia.com/isaacsim/latest/
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### "ModuleNotFoundError: No module named 'isaacsim'"
-**Solution:** Use Isaac Sim's Python interpreter:
+### Common Issues
+
+**"ModuleNotFoundError: No module named 'isaacsim'"**
 ```bash
+# Solution: Use Isaac Sim's Python interpreter
 cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ./python.sh your_script.py
 ```
 
-### "Could not find Isaac Sim assets folder"
-**Solution:** Check if Isaac Sim is properly installed and Nucleus is running.
-You can work around this by using local USD files instead of Nucleus assets.
+**Robot not visible in viewport**
+```bash
+# Solution: Press 'F' to frame camera on robot
+# Or check console for USD loading errors
+```
 
-### Robot not visible
-**Solution:** 
-- Press `F` key to frame camera on robot
-- Check console for USD loading errors
-- Verify asset path exists
+**Motors not responding**
+```bash
+# Solution: Check hardware connections
+python tools/hardware/dxl_idscan.py  # Verify motor IDs
+```
 
-### Simulation runs slow
-**Solution:**
-- Reduce physics substeps
-- Use simpler robot models
-- Close other GPU-intensive applications
-- Check GPU utilization
+**Obstacle avoidance not working**
+```bash
+# Check console for:
+# - LiDAR initialization (20-step warm-up)
+# - Distance readings (should show ~10 rays)
+# - State transitions (FORWARD → STOP → REVERSE → TURN)
+```
 
-## Next Steps
+**Permission denied on /dev/ttyUSB0**
+```bash
+sudo usermod -aG dialout $USER
+newgrp dialout
+```
 
-1. **Run the sample room example** to see a complete scene
-2. **Modify the script** to add your own objects or behaviors
-3. **Read SERVO_CONTROL_GUIDE.md** to learn about hardware integration
-4. **Create your own example** based on the template
-5. **Integrate with Dynamixel servos** using the bridge
+See [TROUBLESHOOTING.md](../docs/TROUBLESHOOTING.md) for more solutions.
+
+## 🚀 Next Steps
+
+1. **Run the main demo:** Start with `wearhaus_room_jetbot_avoidance.py`
+2. **Explore simpler examples:** Try `minimal_jetbot.py` to understand basics
+3. **Modify parameters:** Tune obstacle avoidance thresholds and behaviors
+4. **Add hardware:** Connect Dynamixel motors and test bidirectional sync
+5. **Create your own:** Use templates to build custom applications
 
 ---
 
-For questions or issues, see the main project README or TROUBLESHOOTING.md
+For questions or contributions, see the main project [README](../README.md) or [CONTRIBUTING.md](../CONTRIBUTING.md).
