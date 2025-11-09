@@ -37,10 +37,11 @@ echo "  4) Test hardware only (GUI)"
 echo "  5) Run full bridge (Isaac Sim + Hardware)"
 echo "  6) Minimal Jetbot Example (working prototype)"
 echo "  7) Jetbot + Servo Integration (IDs 1 & 2)"
-echo "  8) Wearhaus Room + Jetbot + Servos (NEW!)"
+echo "  8) Wearhaus Room + Jetbot + Servos"
+echo "  9) Wearhaus Room + RTX LiDAR Obstacle Avoidance (NEW!)"
 echo "  q) Quit"
 echo ""
-read -p "Enter choice [1-8]: " choice
+read -p "Enter choice [1-9]: " choice
 
 case $choice in
     1)
@@ -129,6 +130,40 @@ case $choice in
         read -p "Press Enter to start..."
         cd "$ISAAC_SIM_PATH"
         ./python.sh "$REPO_PATH/examples/wearhaus_room_jetbot.py"
+        ;;
+    
+    9)
+        echo ""
+        echo "Starting Wearhaus Room + RTX LiDAR Obstacle Avoidance..."
+        echo "(Jetbot with front-facing solid-state LiDAR sensor)"
+        echo ""
+        echo "Features:"
+        echo "  ✓ RTX LiDAR sensor (solid-state, small FOV)"
+        echo "  ✓ Reactive obstacle avoidance (stop → reverse → turn)"
+        echo "  ✓ Moving average filter for stability"
+        echo "  ✓ Hysteresis to prevent oscillation"
+        echo "  ✓ Hardware safety controls (velocity clamping)"
+        echo "  ✓ Emergency stop key binding (press 'e')"
+        echo ""
+        echo "Avoidance Parameters:"
+        echo "  - Obstacle threshold: 0.8m"
+        echo "  - Clear threshold: 1.1m (with hysteresis)"
+        echo "  - Reverse duration: 1.0s"
+        echo "  - Turn angle: 60°"
+        echo "  - Cooldown: 0.5s between maneuvers"
+        echo ""
+        echo "Hardware (optional):"
+        echo "  - Motor ID 1: Left wheel"
+        echo "  - Motor ID 2: Right wheel"
+        echo "  - Port: /dev/ttyUSB0"
+        echo "  - Emergency stop active during avoidance"
+        echo "  (Will run in simulation-only mode if not connected)"
+        echo ""
+        echo "Test obstacle placed 1.5m in front of robot"
+        echo ""
+        read -p "Press Enter to start..."
+        cd "$ISAAC_SIM_PATH"
+        ./python.sh "$REPO_PATH/examples/wearhaus_room_jetbot_avoidance.py"
         ;;
 
     q|Q)

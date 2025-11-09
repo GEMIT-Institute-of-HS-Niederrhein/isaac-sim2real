@@ -1,0 +1,38 @@
+#!/bin/bash
+# Quick start script for RTX LiDAR Obstacle Avoidance Demo
+# Run from anywhere
+
+ISAAC_SIM_PATH="$HOME/Desktop/isaacsim/_build/linux-x86_64/release"
+SCRIPT_PATH="$HOME/Desktop/isaac-sim2real/examples/wearhaus_room_jetbot_avoidance.py"
+
+echo "======================================================================"
+echo "RTX LiDAR Obstacle Avoidance Demo - Quick Start"
+echo "======================================================================"
+echo ""
+echo "Features:"
+echo "  ✓ Solid-state RTX LiDAR sensor (60° FOV)"
+echo "  ✓ Reactive avoidance: stop → reverse → turn"
+echo "  ✓ Moving average filter (5 samples)"
+echo "  ✓ Hysteresis (0.8m trigger, 1.1m clear)"
+echo "  ✓ Hardware safety controls"
+echo "  ✓ Emergency stop (press 'e')"
+echo ""
+echo "Test obstacle placed at 1.5m"
+echo ""
+echo "Optional Dynamixel Hardware:"
+echo "  - Motor ID 1: Left wheel"
+echo "  - Motor ID 2: Right wheel"
+echo "  - Port: /dev/ttyUSB0"
+echo "  (Will run simulation-only if not connected)"
+echo ""
+echo "Controls:"
+echo "  e     - Toggle emergency stop"
+echo "  ESC   - Quit"
+echo "  Ctrl+C - Stop"
+echo ""
+echo "======================================================================"
+echo ""
+read -p "Press Enter to start..."
+
+cd "$ISAAC_SIM_PATH"
+./python.sh "$SCRIPT_PATH"
