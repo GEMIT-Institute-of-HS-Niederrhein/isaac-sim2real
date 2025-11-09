@@ -2,6 +2,7 @@
 """
 Isaac Sim 5.1 <-> Dynamixel XL430 Bridge Demo
 4-Wheel Drive Robot Control with Variable Speed and Steering
+Click-to-Navigate with Autonomous Path Following
 """
 
 import os
@@ -9,6 +10,8 @@ import numpy as np
 from dynamixel_sdk import *
 import threading
 import time
+import math
+from collections import deque
 
 # ========== Dynamixel Setup ==========
 DEV_PORT = "/dev/ttyUSB0"
@@ -164,7 +167,82 @@ def setup_isaac_sim():
     return simulation_app, world, robot
 
 
-# ========== Keyboard Control ==========
+# === Keyboard Control ===
+class NavigationController:
+    """Autonomous navigation to clicked waypoints"""
+    def __init__(self):
+        self.goal_position = None  # (x, y) in world coordinates
+        self.path_waypoints = deque()  # Queue of (x, y) waypoints
+        self.is_navigating = False
+        self.reached_threshold = 0.1  # meters
+        self.max_linear_speed = 0.5  # m/s
+        self.max_angular_speed = 1.0  # rad/s
+        
+    def set_goal(self, x, y):
+        """Set a new navigation goal"""
+        self.goal_position = (x, y)
+        self.path_waypoints = deque([(x, y)])  # Simple straight-line path for now
+        self.is_navigating = True
+        print(f"[Navigation] New goal: ({x:.2f}, {y:.2f})")
+        
+    def get_velocities(self, robot_position, robot_heading):
+        """
+        Calculate wheel velocities to reach goal
+        Args:
+            robot_position: (x, y) current position in meters
+            robot_heading: current heading in radians
+        Returns:
+            [linear_velocity, angular_velocity] for differential drive
+        """
+        if not self.is_navigating or not self.path_waypoints:
+            return [0.0, 0.0]
+            
+        # Get current waypoint
+        goal_x, goal_y = self.path_waypoints[0]
+        robot_x, robot_y = robot_position
+        
+        # Calculate distance and angle to goal
+        dx = goal_x - robot_x
+        dy = goal_y - robot_y
+        distance = math.sqrt(dx**2 + dy**2)
+        goal_angle = math.atan2(dy, dx)
+        
+        # Calculate angular error (normalize to -pi to pi)
+        angular_error = goal_angle - robot_heading
+        while angular_error > math.pi:
+            angular_error -= 2 * math.pi
+        while angular_error < -math.pi:
+            angular_error += 2 * math.pi
+            
+        # Check if waypoint reached
+        if distance < self.reached_threshold:
+            self.path_waypoints.popleft()
+            if not self.path_waypoints:
+                self.is_navigating = False
+                print("[Navigation] Goal reached!")
+                return [0.0, 0.0]
+            else:
+                print(f"[Navigation] Waypoint reached, {len(self.path_waypoints)} remaining")
+                
+        # Simple proportional controller
+        # If angle error is large, rotate in place
+        if abs(angular_error) > 0.5:  # ~30 degrees
+            linear_vel = 0.0
+            angular_vel = np.clip(angular_error * 2.0, -self.max_angular_speed, self.max_angular_speed)
+        else:
+            # Move forward while correcting angle
+            linear_vel = np.clip(distance * 1.0, 0.0, self.max_linear_speed)
+            angular_vel = np.clip(angular_error * 1.5, -self.max_angular_speed, self.max_angular_speed)
+            
+        return [linear_vel, angular_vel]
+        
+    def stop(self):
+        """Stop navigation"""
+        self.is_navigating = False
+        self.path_waypoints.clear()
+        print("[Navigation] Stopped")
+
+
 class KeyboardController:
     def __init__(self):
         self.linear_vel = 0.0
@@ -228,12 +306,35 @@ def main():
     # Import keyboard after Isaac Sim loads (avoids conflicts)
     from pynput import keyboard
     
-    # Keyboard controller
+    # Initialize controllers
     kb = KeyboardController()
+    nav = NavigationController()
+    
+    # Navigation mode toggle
+    navigation_mode = [False]  # Use list for mutability in nested function
     
     def on_press(key):
         try:
-            # Movement controls
+            # Navigation mode toggle
+            if hasattr(key, 'char') and key.char in ['n', 'N']:
+                navigation_mode[0] = not navigation_mode[0]
+                mode_str = "NAVIGATION" if navigation_mode[0] else "KEYBOARD"
+                print(f"\n[Mode] Switched to {mode_str} mode")
+                if not navigation_mode[0]:
+                    nav.stop()
+                return
+            
+            # In navigation mode, use WASD to set quick goals
+            if navigation_mode[0]:
+                if hasattr(key, 'char') and key.char in ['w', 'a', 's', 'd']:
+                    # Set relative goals: W=forward 2m, S=back 2m, A=left 2m, D=right 2m
+                    goals = {'w': (2, 0), 's': (-2, 0), 'a': (0, 2), 'd': (0, -2)}
+                    if key.char in goals:
+                        x, y = goals[key.char]
+                        nav.set_goal(x, y)
+                return
+            
+            # Keyboard mode controls
             if key == keyboard.Key.up:
                 kb.linear_vel = min(kb.linear_vel + 0.1, 1.0)
             elif key == keyboard.Key.down:
@@ -273,12 +374,22 @@ def main():
     print("[3/3] Starting control loop...")
     print("\n" + "=" * 70)
     print("CONTROLS:")
-    print("  ↑/↓    : Forward/Backward")
-    print("  ←/→    : Turn Left/Right (4-Wheel Skid Steering)")
-    print("  1-9    : Speed Control (10%-90%)")
-    print("  SPACE  : Emergency Stop")
+    print("  N      : Toggle Navigation Mode")
+    print()
+    print("  KEYBOARD MODE:")
+    print("    ↑/↓  : Forward/Backward")
+    print("    ←/→  : Turn Left/Right (4-Wheel Skid Steering)")
+    print("    1-9  : Speed Control (10%-90%)")
+    print("    SPACE: Emergency Stop")
+    print()
+    print("  NAVIGATION MODE:")
+    print("    W    : Navigate forward 2 meters")
+    print("    A    : Navigate left 2 meters")
+    print("    S    : Navigate backward 2 meters")
+    print("    D    : Navigate right 2 meters")
+    print()
     print("  ESC    : Quit")
-    print("\n  Current Speed: {:.0f}%".format(kb.speed_multiplier * 100))
+    print("\n  Current: KEYBOARD Mode | Speed: {:.0f}%".format(kb.speed_multiplier * 100))
     print("=" * 70)
     print()
     print("Status: Running 4-Wheel Drive... (watch your physical wheels!)")
@@ -287,13 +398,36 @@ def main():
     step_count = 0
     last_feedback_time = time.time()
     
+    # Get robot reference for position tracking (simplified)
+    robot_position = [0.0, 0.0]  # Estimated position
+    robot_heading = 0.0  # Estimated heading
+    
     try:
         while simulation_app.is_running() and kb.running:
             # Step simulation (Isaac Sim 5.1 style)
             world.step(render=True)
             
-            # Get desired wheel velocities from keyboard
-            wheel_vels = kb.get_velocities()
+            # Choose control mode: Navigation or Keyboard
+            if navigation_mode[0] and nav.is_navigating:
+                # Autonomous navigation mode
+                linear, angular = nav.get_velocities(robot_position, robot_heading)
+                
+                # Convert differential drive to 4-wheel velocities (skid steering)
+                wheel_vels = [
+                    linear - angular,  # Front-Left
+                    linear + angular,  # Front-Right
+                    linear - angular,  # Rear-Left
+                    linear + angular   # Rear-Right
+                ]
+                
+                # Update estimated position (simple dead reckoning)
+                dt = 0.01  # 100Hz timestep
+                robot_heading += angular * dt
+                robot_position[0] += linear * math.cos(robot_heading) * dt
+                robot_position[1] += linear * math.sin(robot_heading) * dt
+            else:
+                # Manual keyboard control
+                wheel_vels = kb.get_velocities()
             
             # Send to physical motors with speed multiplier
             dxl.set_velocities(wheel_vels, kb.speed_multiplier)
@@ -305,19 +439,25 @@ def main():
                 last_feedback_time = current_time
                 
                 # Print detailed status
-                print(f"[Status] Speed: {kb.speed_multiplier*100:.0f}% | "
-                      f"Linear: {kb.linear_vel:+.2f} | Angular: {kb.angular_vel:+.2f}")
+                mode_str = "NAVIGATION" if (navigation_mode[0] and nav.is_navigating) else "KEYBOARD"
+                print(f"[{mode_str}] Speed: {kb.speed_multiplier*100:.0f}%", end="")
+                
+                if navigation_mode[0] and nav.is_navigating and nav.goal_position:
+                    # Show navigation status
+                    dx = nav.goal_position[0] - robot_position[0]
+                    dy = nav.goal_position[1] - robot_position[1]
+                    distance = math.sqrt(dx**2 + dy**2)
+                    print(f" | Goal: ({nav.goal_position[0]:.1f}, {nav.goal_position[1]:.1f}) "
+                          f"| Dist: {distance:.2f}m")
+                else:
+                    # Show keyboard control status
+                    print(f" | Linear: {kb.linear_vel:+.2f} | Angular: {kb.angular_vel:+.2f}")
+                
                 print(f"  Target: FL={wheel_vels[0]:+.2f} FR={wheel_vels[1]:+.2f} "
                       f"RL={wheel_vels[2]:+.2f} RR={wheel_vels[3]:+.2f}")
                 print(f"  Actual: FL={actual_vels[0]:4d} FR={actual_vels[1]:4d} "
                       f"RL={actual_vels[2]:4d} RR={actual_vels[3]:4d} (Dynamixel units)")
                 print()
-            
-            # TODO: Future SLAM integration
-            # - Get robot pose from Isaac Sim
-            # - Update SLAM map
-            # - Execute path planning if goal is set
-            # - Override keyboard control with autonomous navigation
             
             # 100Hz update rate
             time.sleep(0.01)
@@ -327,6 +467,7 @@ def main():
     
     finally:
         print("\n[Cleanup] Stopping motors...")
+        nav.stop()
         dxl.cleanup()
         simulation_app.close()
         print("[Done] Goodbye!")
