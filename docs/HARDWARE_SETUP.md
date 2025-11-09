@@ -3,7 +3,7 @@
 ## Required Hardware
 
 ### Dynamixel Servos
-- 4x Dynamixel XL430-W250-T servos
+- 4x Dynamixel XL430-W250-T servos ([e-Manual](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/))
 - 1x U2D2 USB adapter
 - 1x 12V power supply (SMPS recommended)
 - TTL cable(s) for daisy-chaining
@@ -100,5 +100,12 @@ After hardware setup:
 2. Test motors only: `src/simple_gui_test.py`
 3. Test Isaac Sim only: `tests/test_isaac_only.py`
 4. Run full bridge: `src/isaac_dxl_bridge.py`
+
+## Additional Resources
+
+- **XL430-W250-T e-Manual**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/
+- **Control Table Reference**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
+- **U2D2 Setup Guide**: https://emanual.robotis.com/docs/en/parts/interface/u2d2/
+- **Dynamixel Wizard**: https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/
 
 See main README.md for detailed software setup instructions.

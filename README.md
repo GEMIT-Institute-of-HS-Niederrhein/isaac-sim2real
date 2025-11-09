@@ -20,7 +20,7 @@ Real-time bidirectional control bridge between NVIDIA Isaac Sim 5.1 and Dynamixe
 ### Hardware
 
 **Primary System (Dynamixel):**
-- 4× Dynamixel XL430-W250-T servo motors
+- 4× Dynamixel XL430-W250-T servo motors ([e-Manual](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/))
 - 1× U2D2 USB communication adapter
 - 12V power supply (SMPS recommended)
 
@@ -229,7 +229,9 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 - **Issues**: [GitHub Issues](https://github.com/isaac-sim/IsaacSim/issues)
 - **Documentation**: See `docs/` directory
-- **Hardware**: [Dynamixel e-Manual](https://emanual.robotis.com/)
+- **Hardware**: 
+  - [XL430-W250-T e-Manual](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/)
+  - [Dynamixel SDK](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/)
 - **Isaac Sim**: [Official Documentation](https://docs.omniverse.nvidia.com/isaacsim/latest/)
 
 ---

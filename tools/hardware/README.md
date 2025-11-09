@@ -28,6 +28,7 @@ newgrp dialout  # or logout and login again
 - **Port**: `/dev/ttyUSB0` (via U2D2 adapter)
 - **Tools**: `dxl_idscan.py`, `dxl_change_id.py`, `motor_test_single.py`
 - **Use Case**: Precise servo control for wheeled robots
+- **Documentation**: [XL430-W250 e-Manual](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/)
 
 ### System 2: ESP32 PWM Motors (Alternative)
 - **Control**: PWM duty cycle (0-255) via custom protocol
@@ -89,7 +90,7 @@ Found 4 device(s) at 57600 baud:
 ```
 
 **Model Number Reference**:
-- `1060` = XL430-W250-T (our target motor)
+- `1060` = XL430-W250-T (our target motor) - [Documentation](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/)
 - `1020` = XL320
 - Other values = See [ROBOTIS e-Manual](https://emanual.robotis.com/)
 
@@ -249,8 +250,8 @@ python motor_test_single.py  # (after editing DXL_ID)
 ## 📚 Additional Resources
 
 - **Dynamixel SDK Documentation**: https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/overview/
-- **XL430-W250-T Manual**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/
-- **Control Table**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
+- **XL430-W250-T e-Manual**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/
+- **XL430 Control Table**: https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
 - **U2D2 Setup Guide**: https://emanual.robotis.com/docs/en/parts/interface/u2d2/
 
 ---
