@@ -9,7 +9,9 @@ Real-time bidirectional control bridge between NVIDIA Isaac Sim 5.1 and Dynamixe
 ## ✨ Features
 
 - 🎮 **Real-time Control**: Keyboard-driven control with <100ms latency
-- 🔄 **Bi-directional**: Sim → Hardware and Hardware → Sim feedback loops
+- �️ **Autonomous Navigation**: Point-and-go waypoint navigation with path planning
+- �🔄 **Bi-directional**: Sim → Hardware and Hardware → Sim feedback loops
+- 🚗 **4-Wheel Drive**: Independent wheel control with variable speed (10%-90%)
 - 🛡️ **Safe Operation**: Emergency stop, velocity limiting, error handling
 - 🧪 **Modular Testing**: Test hardware and simulation independently
 - 📊 **Live Monitoring**: Real-time status display and diagnostics
@@ -88,10 +90,49 @@ cd ~/Desktop/isaacsim/_build/linux-x86_64/release
 ```
 
 **Keyboard Controls:**
+
+**Mode Toggle:**
+- `N` : Toggle between Keyboard and Navigation modes
+
+**Keyboard Mode (Manual Control):**
 - `↑` / `↓` : Forward / Backward
-- `←` / `→` : Turn Left / Right
+- `←` / `→` : Turn Left / Right (4-Wheel Skid Steering)
+- `1-9` : Speed Control (10%-90%)
 - `SPACE` : Emergency Stop
+
+**Navigation Mode (Autonomous):**
+- `W` : Navigate forward 2 meters
+- `A` : Navigate left 2 meters
+- `S` : Navigate backward 2 meters
+- `D` : Navigate right 2 meters
+
+**Common:**
 - `ESC` : Quit Application
+
+### 🗺️ Autonomous Navigation
+
+The bridge now supports autonomous waypoint navigation with automatic path planning:
+
+1. **Press `N`** to toggle Navigation Mode
+2. **In Navigation Mode**, use `W`, `A`, `S`, `D` keys to set relative waypoints:
+   - `W` = Navigate 2 meters forward
+   - `A` = Navigate 2 meters to the left
+   - `S` = Navigate 2 meters backward  
+   - `D` = Navigate 2 meters to the right
+
+3. The robot will autonomously drive to the waypoint while:
+   - Adjusting heading to face the goal
+   - Following a straight-line path
+   - Displaying distance and progress
+   - Stopping when the waypoint is reached
+
+4. **Press `N`** again to return to manual Keyboard Mode
+
+**Future Enhancements:**
+- Viewport click-to-navigate (click anywhere in Isaac Sim to set goals)
+- SLAM integration for mapping and localization
+- Advanced path planning (A*, RRT) with obstacle avoidance
+- Multi-waypoint paths with smooth trajectory generation
 
 ## 📂 Project Structure
 
