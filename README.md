@@ -18,9 +18,18 @@ Real-time bidirectional control bridge between NVIDIA Isaac Sim 5.1 and Dynamixe
 ## 📋 Prerequisites
 
 ### Hardware
+
+**Primary System (Dynamixel):**
 - 4× Dynamixel XL430-W250-T servo motors
 - 1× U2D2 USB communication adapter
 - 12V power supply (SMPS recommended)
+
+**Alternative System (ESP32 PWM):**
+- ESP32 development board with motor control firmware
+- DC motors with H-bridge drivers
+- USB cable for ESP32 connection
+
+**Common:**
 - Computer with NVIDIA GPU (Compute Capability ≥ 5.0)
 
 ### Software
@@ -99,10 +108,15 @@ isaac-sim2real/
 │   └── test_bridge_components.py # Component unit tests
 ├── tools/                        # Development tools
 │   └── hardware/                # Hardware diagnostic utilities
-│       ├── dxl_idscan.py        # Motor ID scanner
-│       ├── dxl_change_id.py     # Motor ID changer
-│       ├── motor_test_single.py # Single motor test
-│       └── README.md            # Tools documentation
+│       ├── dxl_idscan.py        # Dynamixel motor ID scanner
+│       ├── dxl_change_id.py     # Dynamixel motor ID changer
+│       ├── motor_test_single.py # Dynamixel single motor test
+│       ├── esp32_pwm/           # ESP32 PWM motor control (alternative)
+│       │   ├── send_receive.py  # ESP32 command-line tool
+│       │   ├── usb_comm.py      # ESP32 communication library
+│       │   ├── usb_monitor_raw.py # ESP32 debug monitor
+│       │   └── README.md        # ESP32 system documentation
+│       └── README.md            # Hardware tools documentation
 ├── assets/                       # Robot models and resources
 │   └── ROBOT.usd                # Custom robot USD file
 ├── config/                       # Configuration files

@@ -1,6 +1,11 @@
 # Hardware Utility Tools
 
-This directory contains standalone diagnostic and setup tools for Dynamixel XL430-W250-T motors. These tools help you configure, test, and troubleshoot your hardware before running the full sim-to-real bridge.
+This directory contains standalone diagnostic and setup tools for multiple hardware-in-the-loop systems:
+
+- **Dynamixel XL430-W250-T** - Smart servo motors with Protocol 2.0 (main system)
+- **ESP32 PWM Motors** - DC motors controlled via ESP32 microcontroller (alternative system)
+
+These tools help you configure, test, and troubleshoot your hardware before running the full sim-to-real bridge.
 
 ## 📋 Prerequisites
 
@@ -8,12 +13,33 @@ This directory contains standalone diagnostic and setup tools for Dynamixel XL43
 # Install Dynamixel SDK (if not already installed)
 pip install dynamixel-sdk
 
+# For ESP32 PWM system, install pyserial
+pip install pyserial
+
 # On Linux, ensure serial port permissions
 sudo usermod -aG dialout $USER
 newgrp dialout  # or logout and login again
 ```
 
-## 🔧 Tools Overview
+## 🔧 Hardware Systems
+
+### System 1: Dynamixel XL430-W250-T (Primary)
+- **Control**: Position/Velocity via Protocol 2.0
+- **Port**: `/dev/ttyUSB0` (via U2D2 adapter)
+- **Tools**: `dxl_idscan.py`, `dxl_change_id.py`, `motor_test_single.py`
+- **Use Case**: Precise servo control for wheeled robots
+
+### System 2: ESP32 PWM Motors (Alternative)
+- **Control**: PWM duty cycle (0-255) via custom protocol
+- **Port**: `/dev/ttyESP32` (direct USB connection)
+- **Tools**: `esp32_pwm/send_receive.py`, `esp32_pwm/usb_comm.py`
+- **Use Case**: DC motor control, lower cost alternative
+
+---
+
+## 🔧 Dynamixel Tools (Primary System)
+
+Located in: `tools/hardware/`
 
 ### 1. `dxl_idscan.py` - Motor ID Scanner
 
@@ -265,6 +291,67 @@ newgrp dialout  # or logout/login
 - Velocity Limit may be too low → use main bridge scripts which set proper limits
 - Check baud rate matches motor settings
 - Verify U2D2 firmware is up to date
+
+---
+
+## 🎮 ESP32 PWM Tools (Alternative System)
+
+Located in: `tools/hardware/esp32_pwm/`
+
+### Quick Start
+
+```bash
+# Control Motor ID 1, CounterClockwise, PWM 200
+python esp32_pwm/send_receive.py "01CCWPWM200"
+
+# Control multiple motors
+python esp32_pwm/send_receive.py "01CCWPWM20002CWSPWM150"
+
+# Emergency stop
+python esp32_pwm/send_receive.py "BRAKE"
+```
+
+### Command Syntax
+
+**Single Motor:**
+- Format: `[ID:2][DIRECTION:2-3][MODE:3-4][VALUE:1-3]`
+- Example: `01CCWPWM200` = Motor 1, CounterClockwise, PWM 200
+
+**Multi-Motor (concatenated):**
+- Example: `01CCWPWM20002CWSPWM15503CCWPWM250`
+
+**Special Commands:**
+- `BRAKE` - Emergency stop (active braking)
+- `COAST` - Release motors (passive stop)
+
+### Key Files
+
+1. **`send_receive.py`** - Command-line interface
+   ```bash
+   python esp32_pwm/send_receive.py "01CCWPWM200"
+   ```
+
+2. **`usb_comm.py`** - Core communication library
+   - Frame-based protocol with CRC-16 checksums
+   - Robust error handling (timeout, CRC, format errors)
+   - Context manager support
+
+3. **`usb_monitor_raw.py`** - Debug monitor
+   ```bash
+   python esp32_pwm/usb_monitor_raw.py /dev/ttyESP32
+   ```
+
+### Documentation
+
+For detailed ESP32 PWM system documentation, see:
+**[ESP32 PWM README](esp32_pwm/README.md)**
+
+Includes:
+- Protocol specification with CRC-16
+- Python API reference
+- Integration examples
+- Troubleshooting guide
+- Future Isaac Sim bridge plans
 
 ---
 

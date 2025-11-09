@@ -3,4 +3,6 @@ pynput
 pytest
 # GUI math utils
 numpy
-# Add other libs here as needed (e.g., numpy, opencv-python)
+# ESP32 PWM motor control (alternative hardware)
+pyserial
+# Add other libs here as needed (e.g., opencv-python)
