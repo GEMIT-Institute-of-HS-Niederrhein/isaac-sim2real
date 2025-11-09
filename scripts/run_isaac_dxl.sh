@@ -37,9 +37,10 @@ echo "  4) Test hardware only (GUI)"
 echo "  5) Run full bridge (Isaac Sim + Hardware)"
 echo "  6) Minimal Jetbot Example (working prototype)"
 echo "  7) Jetbot + Servo Integration (IDs 1 & 2)"
+echo "  8) Wearhaus Room + Jetbot + Servos (NEW!)"
 echo "  q) Quit"
 echo ""
-read -p "Enter choice [1-7]: " choice
+read -p "Enter choice [1-8]: " choice
 
 case $choice in
     1)
@@ -107,6 +108,27 @@ case $choice in
         read -p "Press Enter to continue or Ctrl+C to cancel..."
         cd "$ISAAC_SIM_PATH"
         ./python.sh "$REPO_PATH/examples/jetbot_servo_bridge.py"
+        ;;
+    
+    8)
+        echo ""
+        echo "Starting Wearhaus Room + Jetbot + Servo Integration..."
+        echo "(Realistic environment with Dynamixel IDs 1 & 2)"
+        echo ""
+        echo "Features:"
+        echo "  - Warehouse/office environment from Isaac Sim content"
+        echo "  - Jetbot robot with autonomous movement"
+        echo "  - Optional Dynamixel servo integration"
+        echo ""
+        echo "Hardware (optional):"
+        echo "  - Motor ID 1: Left wheel"
+        echo "  - Motor ID 2: Right wheel"
+        echo "  - Port: /dev/ttyUSB0"
+        echo "  (Will run in simulation-only mode if not connected)"
+        echo ""
+        read -p "Press Enter to start..."
+        cd "$ISAAC_SIM_PATH"
+        ./python.sh "$REPO_PATH/examples/wearhaus_room_jetbot.py"
         ;;
 
     q|Q)

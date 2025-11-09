@@ -4,6 +4,52 @@ This directory contains example scripts demonstrating Isaac Sim capabilities and
 
 ## Available Examples
 
+### 🏢 wearhaus_room_jetbot.py (NEW! - Isaac Sim 5.1)
+**Purpose:** Realistic warehouse/office environment with Jetbot + optional Dynamixel integration
+
+**What it does:**
+- Loads realistic environments from Isaac Sim content browser
+  - Full Warehouse (with shelves and props)
+  - Simple Warehouse  
+  - Simple Room
+  - Or creates custom Wearhaus-style room as fallback
+- Adds Jetbot robot with autonomous movement pattern
+- Optional bidirectional sync with Dynamixel servos (Motor IDs 1 & 2)
+- Works in simulation-only mode if hardware not connected
+
+**Features:**
+✅ Uses Isaac Sim's built-in environment assets  
+✅ Realistic room with walls and obstacles  
+✅ Optional hardware integration  
+✅ Autonomous navigation pattern  
+✅ Real-time position and velocity feedback  
+
+**How to run:**
+```bash
+cd ~/Desktop/isaacsim/_build/linux-x86_64/release
+./python.sh ~/Desktop/isaac-sim2real/examples/wearhaus_room_jetbot.py
+```
+
+**Or use the menu:**
+```bash
+cd ~/Desktop/isaac-sim2real/scripts
+./run_isaac_dxl.sh  # Choose option 8
+```
+
+**Hardware (Optional):**
+- Motor ID 1: Left wheel
+- Motor ID 2: Right wheel  
+- Port: /dev/ttyUSB0
+- Will run in simulation-only mode if not connected
+
+**What you'll see:**
+- A realistic warehouse or office environment
+- Jetbot robot navigating autonomously
+- Real-time feedback in console
+- If hardware connected: Physical motors mirror simulation
+
+---
+
 ### 📦 sample_room_robot.py
 **Purpose:** Create a warehouse environment with NVIDIA robot examples
 
