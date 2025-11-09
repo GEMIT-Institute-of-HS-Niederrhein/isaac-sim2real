@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Isaac Sim 5.1 <-> Dynamixel XL430 Bridge Demo
-Drives 4 physical servo wheels based on Isaac Sim robot wheel velocities
+4-Wheel Drive Robot Control with Variable Speed and Steering
 """
 
 import os
@@ -20,9 +20,11 @@ ADDR_OPERATING_MODE = 11
 ADDR_TORQUE_ENABLE = 64
 ADDR_VELOCITY_LIMIT = 44
 ADDR_GOAL_VELOCITY = 104
+ADDR_PRESENT_VELOCITY = 128
 
 MODE_VELOCITY = 1
 VELOCITY_LIMIT = 700  # Max velocity we'll use
+MAX_VELOCITY_SCALE = 600  # Maximum Dynamixel velocity units
 
 class DynamixelController:
     def __init__(self):
@@ -34,7 +36,7 @@ class DynamixelController:
         if not self.port_handler.setBaudRate(BAUDRATE):
             raise Exception("Failed to set baudrate")
         
-        print("[Dynamixel] Initializing motors...")
+        print("[Dynamixel] Initializing 4-wheel drive motors...")
         for motor_id in MOTOR_IDS:
             # Disable torque
             self.packet_handler.write1ByteTxRx(
@@ -52,23 +54,41 @@ class DynamixelController:
             self.packet_handler.write1ByteTxRx(
                 self.port_handler, motor_id, ADDR_TORQUE_ENABLE, 1)
             
-            print(f"  Motor {motor_id} ready")
+            print(f"  Motor {motor_id} ready (4WD)")
     
-    def set_velocities(self, velocities):
+    def set_velocities(self, velocities, speed_multiplier=1.0):
         """
-        Set wheel velocities
+        Set wheel velocities for 4-wheel drive
         velocities: list of 4 values [FL, FR, RL, RR] in range [-1, 1]
+        speed_multiplier: 0.0 to 1.0 for variable speed control
         """
-        # Convert normalized velocities to Dynamixel units
-        # 1 LSB ≈ 0.229 rpm, so velocity ~600 is reasonable
         for i, motor_id in enumerate(MOTOR_IDS):
-            vel = int(velocities[i] * 600)  # Scale to ±600
+            # Apply speed multiplier to allow variable speed
+            vel = int(velocities[i] * MAX_VELOCITY_SCALE * speed_multiplier)
+            
             # Dynamixel uses signed 32-bit, need to handle negative
             if vel < 0:
                 vel = (1 << 32) + vel
             
             self.packet_handler.write4ByteTxRx(
                 self.port_handler, motor_id, ADDR_GOAL_VELOCITY, vel)
+    
+    def get_velocities(self):
+        """Read actual velocities from all motors for feedback"""
+        actual_vels = []
+        for motor_id in MOTOR_IDS:
+            vel, comm, err = self.packet_handler.read4ByteTxRx(
+                self.port_handler, motor_id, ADDR_PRESENT_VELOCITY)
+            
+            if comm == 0:  # COMM_SUCCESS
+                # Convert from unsigned to signed
+                if vel > 0x7FFFFFFF:
+                    vel = vel - (1 << 32)
+                actual_vels.append(vel)
+            else:
+                actual_vels.append(0)
+        
+        return actual_vels
     
     def stop_all(self):
         for motor_id in MOTOR_IDS:
@@ -149,33 +169,56 @@ class KeyboardController:
     def __init__(self):
         self.linear_vel = 0.0
         self.angular_vel = 0.0
+        self.speed_multiplier = 0.5  # Start at 50% speed
         self.running = True
+        self.steering_mode = "differential"  # or "ackermann" for future
         
     def get_velocities(self):
-        """Return differential drive velocities for 4 wheels"""
-        # Differential drive: left/right wheel velocities
-        left_vel = self.linear_vel - self.angular_vel * 0.5
-        right_vel = self.linear_vel + self.angular_vel * 0.5
+        """
+        Return 4-wheel drive velocities with proper differential steering
+        Implements skid-steering (tank drive) for 4-wheel robots
+        """
+        # Base velocities from linear input
+        base_vel = self.linear_vel
+        
+        # Differential steering: inner wheels slower, outer wheels faster
+        # For turning left: left wheels slower, right wheels faster
+        # For turning right: right wheels slower, left wheels faster
+        
+        # Calculate individual wheel velocities
+        fl_vel = base_vel - self.angular_vel  # Front-Left
+        fr_vel = base_vel + self.angular_vel  # Front-Right
+        rl_vel = base_vel - self.angular_vel  # Rear-Left
+        rr_vel = base_vel + self.angular_vel  # Rear-Right
         
         # Clamp to [-1, 1]
-        left_vel = np.clip(left_vel, -1, 1)
-        right_vel = np.clip(right_vel, -1, 1)
+        fl_vel = np.clip(fl_vel, -1, 1)
+        fr_vel = np.clip(fr_vel, -1, 1)
+        rl_vel = np.clip(rl_vel, -1, 1)
+        rr_vel = np.clip(rr_vel, -1, 1)
         
-        # Return [FL, FR, RL, RR]
-        return [left_vel, right_vel, left_vel, right_vel]
+        return [fl_vel, fr_vel, rl_vel, rr_vel]
+    
+    def set_speed(self, level):
+        """Set speed multiplier from 1-9 (10%-90%)"""
+        if 1 <= level <= 9:
+            self.speed_multiplier = level / 10.0
+            return True
+        return False
 
 
 # ========== Main Bridge Loop ==========
 def main():
     print("=" * 70)
-    print("Isaac Sim 5.1 + Dynamixel XL430 Bridge Demo")
+    print("Isaac Sim 5.1 + Dynamixel XL430 4-Wheel Drive Bridge")
+    print("Features: Variable Speed | 4WD Skid Steering | Motor Feedback")
     print("=" * 70)
     print()
     
     # Initialize Dynamixel
-    print("[1/3] Initializing Dynamixel motors...")
+    print("[1/3] Initializing Dynamixel 4-wheel drive motors...")
     dxl = DynamixelController()
-    print("[✓] Dynamixel ready\n")
+    print("[✓] All 4 motors ready\n")
     
     # Initialize Isaac Sim
     print("[2/3] Starting Isaac Sim 5.1...")
@@ -190,6 +233,7 @@ def main():
     
     def on_press(key):
         try:
+            # Movement controls
             if key == keyboard.Key.up:
                 kb.linear_vel = min(kb.linear_vel + 0.1, 1.0)
             elif key == keyboard.Key.down:
@@ -201,6 +245,13 @@ def main():
             elif key == keyboard.Key.space:
                 kb.linear_vel = 0.0
                 kb.angular_vel = 0.0
+            
+            # Speed control with number keys 1-9
+            elif hasattr(key, 'char') and key.char in '123456789':
+                level = int(key.char)
+                if kb.set_speed(level):
+                    print(f"\n[Speed] Changed to {kb.speed_multiplier*100:.0f}%")
+                    
         except AttributeError:
             pass
     
@@ -222,16 +273,19 @@ def main():
     print("[3/3] Starting control loop...")
     print("\n" + "=" * 70)
     print("CONTROLS:")
-    print("  ↑/↓  : Forward/Backward")
-    print("  ←/→  : Turn Left/Right")
-    print("  SPACE: Stop")
-    print("  ESC  : Quit")
+    print("  ↑/↓    : Forward/Backward")
+    print("  ←/→    : Turn Left/Right (4-Wheel Skid Steering)")
+    print("  1-9    : Speed Control (10%-90%)")
+    print("  SPACE  : Emergency Stop")
+    print("  ESC    : Quit")
+    print("\n  Current Speed: {:.0f}%".format(kb.speed_multiplier * 100))
     print("=" * 70)
     print()
-    print("Status: Running... (watch your physical wheels!)")
+    print("Status: Running 4-Wheel Drive... (watch your physical wheels!)")
     print()
     
     step_count = 0
+    last_feedback_time = time.time()
     
     try:
         while simulation_app.is_running() and kb.running:
@@ -241,16 +295,29 @@ def main():
             # Get desired wheel velocities from keyboard
             wheel_vels = kb.get_velocities()
             
-            # Send to physical motors
-            dxl.set_velocities(wheel_vels)
+            # Send to physical motors with speed multiplier
+            dxl.set_velocities(wheel_vels, kb.speed_multiplier)
             
-            # Optionally: If we wire an articulation later, we can mirror velocities there
+            # Get motor feedback every second
+            current_time = time.time()
+            if current_time - last_feedback_time >= 1.0:
+                actual_vels = dxl.get_velocities()
+                last_feedback_time = current_time
+                
+                # Print detailed status
+                print(f"[Status] Speed: {kb.speed_multiplier*100:.0f}% | "
+                      f"Linear: {kb.linear_vel:+.2f} | Angular: {kb.angular_vel:+.2f}")
+                print(f"  Target: FL={wheel_vels[0]:+.2f} FR={wheel_vels[1]:+.2f} "
+                      f"RL={wheel_vels[2]:+.2f} RR={wheel_vels[3]:+.2f}")
+                print(f"  Actual: FL={actual_vels[0]:4d} FR={actual_vels[1]:4d} "
+                      f"RL={actual_vels[2]:4d} RR={actual_vels[3]:4d} (Dynamixel units)")
+                print()
             
-            # Print status every 100 steps (~1 second)
-            step_count += 1
-            if step_count % 100 == 0:
-                print(f"[Status] Linear: {kb.linear_vel:+.2f} | Angular: {kb.angular_vel:+.2f} | "
-                      f"Wheels: [{wheel_vels[0]:+.2f}, {wheel_vels[1]:+.2f}, {wheel_vels[2]:+.2f}, {wheel_vels[3]:+.2f}]")
+            # TODO: Future SLAM integration
+            # - Get robot pose from Isaac Sim
+            # - Update SLAM map
+            # - Execute path planning if goal is set
+            # - Override keyboard control with autonomous navigation
             
             # 100Hz update rate
             time.sleep(0.01)
